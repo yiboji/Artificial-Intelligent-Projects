@@ -1,132 +1,8 @@
 import sys
 import getopt
 import copy
+
 valboard = None
-def main(argv):
-    try:
-        opts,args = getopt.getopt(argv,"i:")
-    except getopt.GetoptError:
-        print "argument error"
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-i"):
-            filename = arg
-        else:
-            print "input file error"
-            sys.exit(2)
-
-    staboard = [[None for x in range(5)] for x in range(5)] 
-    global valboard
-    valboard = [[0 for x in range(5)] for x in range(5)]
-    #print "input file naem is " +str(filename)
-    fp = open(filename)
-    for i, line in enumerate(fp):
-        if i==0:
-            task = int(line)
-            if task==4:
-                break;
-        elif i==1:
-            player = line.split()[0]
-            if player is "X":
-                enemy = "O"
-            elif player is "O":
-                enermy = "X"
-        elif i==2:
-            cutoff = int(line)
-            if cutoff<=0:
-                sys.exit(2)
-        elif i>=3 and i<8:
-            for index, item in enumerate(line.split()):
-                valboard[i-3][index] = int(item)
-        elif i>=8 and i<13:
-            for index, item in enumerate(line.split()[0]):
-                staboard[i-8][index] = item
-    #print str(valboard)
-    #print str(staboard)
-    if task!=4:
-        total = 0
-        for rows in staboard:
-            for cols in rows:
-                total += 1
-        if total < cutoff:
-            cutoff = total
-            maxcut = cutoff
-    if task==1:
-        best_first(staboard,cutoff,player,enemy)
-        fo = open("next_state.txt","w+")
-        for item in staboard:
-            line = ""
-            for val in item:
-                line += val
-            line += "\n"
-            fo.writelines(line)
-        fo.close()
-    elif task==2:        
-        minimax(staboard,cutoff,player,enemy)
-        fo = open("next_state.txt","w+")
-        for item in staboard:
-            line = ""
-            for val in item:
-                line += val
-            line += "\n"
-            fo.writelines(line)
-        fo.close()
-    elif  task==3:
-        minimax_alpha_beta(staboard,cutoff,player,enemy)
-        fo = open("next_state.txt","w+")
-        for item in staboard:
-            line = ""
-            for val in item:
-                line += val
-            line += "\n"
-            fo.writelines(line)
-        fo.close()
-    elif task==4:
-        fp.close()
-        fp = open(filename)
-        for i, line in enumerate(fp):
-            if i==0:
-                task = int(line)
-            elif i==1:
-                player = line.split()[0]
-            elif i==2:
-                first_algor = int(line)
-            elif i==3:
-                first_cutoff = int(line)
-                if first_cutoff<=0:
-                    sys.exit(2)
-            elif i==4:
-                enemy = line.split()[0]
-            elif i==5:
-                second_algor = int(line)
-            elif i==6:
-                second_cutoff = int(line)
-                if second_cutoff<=0:
-                    sys.exit(2)
-            elif i>=7 and i<12:
-                for index, item in enumerate(line.split()):
-                    valboard[i-7][index] = int(item)
-            elif i>=12 and i<17:
-                for index, item in enumerate(line.split()[0]):
-                    staboard[i-12][index] = item
-        total = 0
-        for rows in staboard:
-            for cols in rows:
-                total += 1
-        if total < first_cutoff:
-            first_cutoff = total
-        if total < second_cutoff:
-            second_cutoff = total
-
-        battle(staboard,player,first_algor,first_cutoff,enemy,second_algor,second_cutoff)
-        fo = open("next_state.txt","w+")
-        for item in staboard:
-            line = ""
-            for val in item:
-                line += val
-            line += "\n"
-            fo.writelines(line)
-        fo.close()
 
 def best_first(staboard,cutoff,player,enemy):
     sumval = 0
@@ -179,6 +55,7 @@ def best_first(staboard,cutoff,player,enemy):
     staboard[coor[0]][coor[1]] = player
     for coor in nextCoord[1]:
             staboard[coor[0]][coor[1]] = player
+
 def minimax(staboard, cutoff,player,enemy):
     maxcut = cutoff
     best = float('-inf')
@@ -231,6 +108,7 @@ def minimax(staboard, cutoff,player,enemy):
         for j,item in enumerate(rows):
             staboard[i][j] = move[i][j]
     fo.writelines("root,0,"+str(best)+"\n")
+
 def minimax_alpha_beta(staboard, cutoff,player,enemy):
     maxcut = cutoff
     best = float('-inf')
@@ -641,8 +519,6 @@ def battle(staboard,player,first_algor,first_cutoff,enemy,second_algor,second_cu
         for cols in rows:
             if cols == "*":
                 total += 1
-    #print str(staboard)
-    #print str(total)
     while total > 0:
         if first_algor==1:
             best_first(staboard,first_cutoff,player,enemy)
@@ -656,7 +532,6 @@ def battle(staboard,player,first_algor,first_cutoff,enemy,second_algor,second_cu
                 line += item
             line += "\n"
             fo.writelines(line)
-        #print str(staboard)
         total -= 1
         if total > 0:
             if second_algor==1:
@@ -672,6 +547,129 @@ def battle(staboard,player,first_algor,first_cutoff,enemy,second_algor,second_cu
                 line += "\n"
                 fo.writelines(line)
             total -= 1
-            #print str(staboard)
+            
+def main_logic(argv):
+    try:
+        opts,args = getopt.getopt(argv,"i:")
+    except getopt.GetoptError:
+        print "argument error"
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-i"):
+            filename = arg
+        else:
+            print "input file error"
+            sys.exit(2)
 
-main(sys.argv[1:])
+    staboard = [[None for x in range(5)] for x in range(5)] 
+    global valboard
+    valboard = [[0 for x in range(5)] for x in range(5)]
+    fp = open(filename)
+    for i, line in enumerate(fp):
+        if i==0:
+            task = int(line)
+            if task==4:
+                break;
+        elif i==1:
+            player = line.split()[0]
+            if player is "X":
+                enemy = "O"
+            elif player is "O":
+                enermy = "X"
+        elif i==2:
+            cutoff = int(line)
+            if cutoff<=0:
+                sys.exit(2)
+        elif i>=3 and i<8:
+            for index, item in enumerate(line.split()):
+                valboard[i-3][index] = int(item)
+        elif i>=8 and i<13:
+            for index, item in enumerate(line.split()[0]):
+                staboard[i-8][index] = item
+    if task!=4:
+        total = 0
+        for rows in staboard:
+            for cols in rows:
+                total += 1
+        if total < cutoff:
+            cutoff = total
+            maxcut = cutoff
+    if task==1:
+        best_first(staboard,cutoff,player,enemy)
+        fo = open("next_state.txt","w+")
+        for item in staboard:
+            line = ""
+            for val in item:
+                line += val
+            line += "\n"
+            fo.writelines(line)
+        fo.close()
+    elif task==2:        
+        minimax(staboard,cutoff,player,enemy)
+        fo = open("next_state.txt","w+")
+        for item in staboard:
+            line = ""
+            for val in item:
+                line += val
+            line += "\n"
+            fo.writelines(line)
+        fo.close()
+    elif  task==3:
+        minimax_alpha_beta(staboard,cutoff,player,enemy)
+        fo = open("next_state.txt","w+")
+        for item in staboard:
+            line = ""
+            for val in item:
+                line += val
+            line += "\n"
+            fo.writelines(line)
+        fo.close()
+    elif task==4:
+        fp.close()
+        fp = open(filename)
+        for i, line in enumerate(fp):
+            if i==0:
+                task = int(line)
+            elif i==1:
+                player = line.split()[0]
+            elif i==2:
+                first_algor = int(line)
+            elif i==3:
+                first_cutoff = int(line)
+                if first_cutoff<=0:
+                    sys.exit(2)
+            elif i==4:
+                enemy = line.split()[0]
+            elif i==5:
+                second_algor = int(line)
+            elif i==6:
+                second_cutoff = int(line)
+                if second_cutoff<=0:
+                    sys.exit(2)
+            elif i>=7 and i<12:
+                for index, item in enumerate(line.split()):
+                    valboard[i-7][index] = int(item)
+            elif i>=12 and i<17:
+                for index, item in enumerate(line.split()[0]):
+                    staboard[i-12][index] = item
+        total = 0
+        for rows in staboard:
+            for cols in rows:
+                total += 1
+        if total < first_cutoff:
+            first_cutoff = total
+        if total < second_cutoff:
+            second_cutoff = total
+
+        battle(staboard,player,first_algor,first_cutoff,enemy,second_algor,second_cutoff)
+        fo = open("next_state.txt","w+")
+        for item in staboard:
+            line = ""
+            for val in item:
+                line += val
+            line += "\n"
+            fo.writelines(line)
+        fo.close()
+
+if __name__=="__main__":
+    main_logic(sys.argv[1:])
