@@ -3,14 +3,18 @@ import getopt
 import copy
 
 class Query:
+
     types = None
     query = {}
     evid = {}
+
     def __init__(self, types, query, evid):
         self.types = types
         self.query = query
         self.evid = evid
+
 class Distribute:
+
     def __init__(self, queryname):
         self.var = queryname
         self.prob = {}
@@ -18,13 +22,73 @@ class Distribute:
         self.prob[val] = probval
     def __getitem__(self, val):
         return self.prob[val]
+
 class BNet:
+
     def __init__(self, node=[]):
         self.nodes=[]
         self.variable=[]
         for item in node:
             self.varialbe.append(item[0])
-def main(argv):
+
+def enumerate_ask(X,e,bn_vars):
+    #X is the 'Demoalize'
+    #e is the {'L':True, 'I':True}
+    #bn_vars is ['D','L','I','N'] with parents
+    Q = Distribute(X)
+    for xi in [True, False]:
+        exte = copy.deepcopy(e)
+        exte[X] = xi
+        Q[xi] = enumerate_all(bn_vars,exte)
+    normalize(Q)
+    print "result of enumerate "+X+" T:"+str(Q[True])+" F:"+str(Q[False])
+
+def enumerate_all(bn_vars, e):
+    if not bn_vars:
+        return 1.0
+    Y, res = bn_vars[0], bn_vars[1:]
+    if Y[0] in e:
+        result = get_p(Y,e[Y[0]],e)*enumerate_all(res,e)
+        print res
+        return result
+    else:
+        result = 0
+        for val in [True,False]:
+            exte = copy.deepcopy(e)
+            exte[Y[0]] = val
+            result  = result + get_p(Y,val,e)*enumerate_all(res,exte)
+        print res
+        return result 
+
+def get_p(Y,val,e):
+    key = ()
+    table = {}
+    for i, item in enumerate(Y):
+        if i>0 and i<len(Y)-1:
+            if len(item)==0:
+                break
+            key = key+(e[item],)
+        elif i==len(Y)-1:
+            table = item
+            if len(key)==1:
+                key = key[0]
+            if val==True:
+                print "key"
+                print key
+                return float(table[key])
+            else:
+                return 1-float(table[key])
+    if val==True:
+        return float(Y[-1]) 
+    else:
+        return 1-float(Y[-1])
+
+def normalize(Q):
+    total = Q[True]+Q[False]
+    Q[True] = Q[True]/total
+    Q[False] = Q[False]/total
+
+def main_logic(argv):
     try:
         opts,args = getopt.getopt(argv,"i:")
     except getopt.GetoptError:
@@ -130,62 +194,9 @@ def main(argv):
             print "final result"
             print key
             print enumerate_ask(key,q.evid,network)
-def enumerate_ask(X,e,bn_vars):
-    #X is the 'Demoalize'
-    #e is the {'L':True, 'I':True}
-    #bn_vars is ['D','L','I','N'] with parents
-    Q = Distribute(X)
-    for xi in [True, False]:
-        exte = copy.deepcopy(e)
-        exte[X] = xi
-        Q[xi] = enumerate_all(bn_vars,exte)
-    normalize(Q)
-    print "result of enumerate "+X+" T:"+str(Q[True])+" F:"+str(Q[False])
-def enumerate_all(bn_vars, e):
-    if not bn_vars:
-        return 1.0
-    Y, res = bn_vars[0], bn_vars[1:]
-    if Y[0] in e:
-        result = get_p(Y,e[Y[0]],e)*enumerate_all(res,e)
-        print res
-        return result
-    else:
-        result = 0
-        for val in [True,False]:
-            exte = copy.deepcopy(e)
-            exte[Y[0]] = val
-            result  = result + get_p(Y,val,e)*enumerate_all(res,exte)
-        print res
-        return result 
 
-def get_p(Y,val,e):
-    key = ()
-    table = {}
-    for i, item in enumerate(Y):
-        if i>0 and i<len(Y)-1:
-            if len(item)==0:
-                break
-            key = key+(e[item],)
-        elif i==len(Y)-1:
-            table = item
-            if len(key)==1:
-                key = key[0]
-            if val==True:
-                print "key"
-                print key
-                return float(table[key])
-            else:
-                return 1-float(table[key])
-    if val==True:
-        return float(Y[-1]) 
-    else:
-        return 1-float(Y[-1])
-def normalize(Q):
-    total = Q[True]+Q[False]
-    Q[True] = Q[True]/total
-    Q[False] = Q[False]/total
-
-main(sys.argv[1:])
+if __name__=='__main__':
+    main_logic(sys.argv[1:])
 
 
 

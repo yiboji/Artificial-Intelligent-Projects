@@ -2,13 +2,15 @@ import sys
 import getopt
 import copy
 
-fo = open("output.txt","w+")
 class KB:
+
     imply = {}
     clause = {}
     last_goal = ""
+
     def __init__(self):
-        pass
+        self.fo = open("output.txt","w+")
+
     def add(self,query):
         if '=>' in query:
             lbs = query.split('=>')[0]
@@ -35,8 +37,9 @@ class KB:
             args = []
             predicate = self.dearg(query, args)
             if predicate not in self.clause:
-                self.clause[predicate] = [];
-            self.clause[predicate].append(args);
+                self.clause[predicate] = []
+            self.clause[predicate].append(args)
+
     def dearg(self,query,args):
         predicate = query.split('(')[0]
         rest = query.split('(')[1].split(')')[0]
@@ -45,6 +48,7 @@ class KB:
             item = item.replace(" ", "")
             args.append(item)
         return predicate.replace(" ", "")
+
     def bc_ask(self, goal, sub):
         args = []
         predicate = self.dearg(goal,args) 
@@ -62,7 +66,7 @@ class KB:
                     newlast_goal = newlast_goal+args[i]
                     newlast_goal = newlast_goal + ','
                 newlast_goal = newlast_goal[0:-1]+')'
-                fo.writelines("Ask: " + self.reform(newlast_goal)+"\n")
+                self.fo.writelines("Ask: " + self.reform(newlast_goal)+"\n")
                 pos_sub = []
                 pos_sub.append(subsub)
                 and_flag = False 
@@ -80,9 +84,9 @@ class KB:
                             for query in traces:
                                 reformed_query = self.reform(query)
                                 if "_" in reformed_query:
-                                    fo.writelines("Ask: "+reformed_query+"\n")
+                                    self.fo.writelines("Ask: "+reformed_query+"\n")
                                 else:
-                                    fo.writelines("True: " + reformed_query+"\n")
+                                    self.fo.writelines("True: " + reformed_query+"\n")
                         newgoal = rule_pred+'('
                         rule_args_sub = []
                         for rule_val in rule_args: #substituet args
@@ -96,11 +100,11 @@ class KB:
                             newgoal = newgoal + ','
                         newgoal = newgoal[0:-1]+')'
                         retsub = [] 
-                        fo.writelines("what's the goal " + newgoal)
+                        self.fo.writelines("what's the goal " + newgoal)
                         if self.bc_ask(newgoal, retsub) is True:
-                            fo.writelines("return to "+ rule_pred+"\n")
+                            self.fo.writelines("return to "+ rule_pred+"\n")
                             for i, rows in enumerate(retsub):
-                                fo.writelines(str(rows)+"\n")
+                                self.fo.writelines(str(rows)+"\n")
                                 retrace = rows.pop()
                                 newsub = copy.deepcopy(subs)
                                 for i, item in enumerate(rows):
@@ -142,7 +146,7 @@ class KB:
                    continue #continue to try another or clause 
         fact = self.clause.get(predicate)
         if fact is not None:
-            fo.writelines("Ask: " + self.reform(goal) +"\n")
+            self.fo.writelines("Ask: " + self.reform(goal) +"\n")
             count = 0
             for i, facttmp in enumerate(fact):
                 subtmp = []
@@ -171,12 +175,12 @@ class KB:
                 self.last_goal = copy.deepcopy(goal)
                 return True
             else:
-                fo.writelines("False: "+self.reform(goal)+"\n")
+                self.fo.writelines("False: "+self.reform(goal)+"\n")
                 return False
         else:
-            fo.writelines("False: "+self.reform(goal)+"\n")
+            self.fo.writelines("False: "+self.reform(goal)+"\n")
             return False
-        fo.writelines("False: "+self.reform(goal)+"\n")
+        self.fo.writelines("False: "+self.reform(goal)+"\n")
         return False
 
     def bc_query(self, query):
@@ -189,9 +193,9 @@ class KB:
                 for query in trace:
                     reformed_query = self.reform(query)
                     if "_" in reformed_query:
-                        fo.writelines("Ask: "+reformed_query+"\n")
+                        self.fo.writelines("Ask: "+reformed_query+"\n")
                     else:
-                        fo.writelines("True: " + reformed_query+"\n")
+                        self.fo.writelines("True: " + reformed_query+"\n")
             ret = []
             item = item.replace(" ", "")
             if self.bc_ask(item, ret) is False:
@@ -201,10 +205,11 @@ class KB:
             for query in trace:
                 reformed_query = self.reform(query)
                 if "_" in reformed_query:
-                    fo.writelines("Ask: " + reformed_query+"\n")
+                    self.fo.writelines("Ask: " + reformed_query+"\n")
                 else:
-                    fo.writelines("True: " + reformed_query+"\n")
+                    self.fo.writelines("True: " + reformed_query+"\n")
         return True
+
     def reform(self, query):
         args = []
         predicate = self.dearg(query, args)
@@ -217,6 +222,7 @@ class KB:
             goal  = goal + ', '
         goal = goal[0:-2]+')'
         return goal
+
 def main(argv):
     kb = KB()
     try:
@@ -238,8 +244,9 @@ def main(argv):
             clause = line.split("\n")[0]
             kb.add(clause)
     if kb.bc_query(goal) is True:
-        fo.writelines("True"+"\n")
+        kb.fo.writelines("True"+"\n")
     else:
-        fo.writelines("False"+"\n")
+        kb.fo.writelines("False"+"\n")
 
-main(sys.argv[1:])
+if __name__=='__main__':
+    main(sys.argv[1:])
